@@ -58,7 +58,7 @@ ClawdBody is a 1-click deployment platform for ClawdBot that runs 24/7 on cloud 
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/Prakshal-Jain/ClawdBody.git
+git clone https://github.com/henrino3/clawdspot.git
 cd ClawdBody
 npm install
 ```
@@ -186,7 +186,7 @@ Once setup is complete, ClawdBot runs 24/7 on your VM, ready to execute tasks. Y
 Since the repository is public, you can deploy directly:
 
 1. Go to [vercel.com/new](https://vercel.com/new)
-2. Import your GitHub repository: `Prakshal-Jain/ClawdBody`
+2. Import your GitHub repository: `henrino3/clawdspot`
 3. Vercel will auto-detect Next.js settings
 
 ### 2. Configure Environment Variables
@@ -296,3 +296,53 @@ For questions or issues:
 MIT
 
 
+
+## ClawSpot multi-tenant extension
+
+This fork turns the original ClawdBody setup flow into the start of a hosted ClawSpot control plane:
+
+- **Organizations / tenants**: every signed-in user gets a default organization, owner membership, free subscription row, and tenant context helper.
+- **White-label config**: `/api/tenant` reads and updates brand name, logo, colors, favicon, and future custom domain fields.
+- **Billing scaffold**: `/api/billing/checkout`, `/api/billing/portal`, and `/api/billing/webhook` are Stripe-ready and fail closed until Stripe env vars are configured.
+- **Dashboard**: `/dashboard` shows current tenant, plan, members, running VMs, and white-label status.
+
+### Additional environment variables
+
+```bash
+# Stripe billing, required before paid checkout works
+STRIPE_SECRET_KEY=sk_test_or_live_...
+STRIPE_PRICE_ID_STARTER=price_...
+STRIPE_PRICE_ID_PRO=price_...              # optional, used by webhook plan mapping
+STRIPE_PRICE_ID_ENTERPRISE=price_...       # optional, used by webhook plan mapping
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Production app URL used for Stripe redirect URLs
+NEXTAUTH_URL=https://your-clawspot-domain.example
+```
+
+### Tenant API
+
+```bash
+# Read current organization, subscription, members, and white-label config
+GET /api/tenant
+
+# Update brand fields. Requires OWNER or ADMIN membership.
+PATCH /api/tenant
+{
+  "brandName": "Acme Agents",
+  "logoUrl": "https://.../logo.png",
+  "primaryColor": "#14b8a6",
+  "accentColor": "#f43f5e",
+  "customDomain": "agents.acme.com"
+}
+```
+
+### Billing API
+
+```bash
+POST /api/billing/checkout   # creates a Stripe subscription checkout session
+POST /api/billing/portal     # opens the Stripe customer portal
+POST /api/billing/webhook    # syncs checkout/subscription events into Prisma
+```
+
+The billing routes intentionally return `501` JSON until the required Stripe variables are present. This keeps the fork safe to deploy before live billing credentials exist.

@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
+import { createDefaultOrganization } from '@/lib/tenant'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -23,7 +24,7 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // Redirect to learning-sources after sign-in
       if (url.startsWith(baseUrl)) {
-        return `${baseUrl}/learning-sources`
+        return `${baseUrl}/dashboard`
       }
       // Allow relative callback URLs
       if (url.startsWith('/')) {
@@ -59,9 +60,18 @@ export const authOptions: NextAuthOptions = {
             },
           })
         }
+
+        // Get or create default Organization for multi-tenant support
+        const membership = await prisma.membership.findFirst({
+          where: { userId: user.id },
+        })
+
+        if (!membership) {
+          await createDefaultOrganization(user.id, user.name)
+        }
       } catch (error) {
-        // Don't block authentication if setup state creation fails
-        console.error('Failed to create setup state during sign in:', error)
+        // Don't block authentication if setup/org creation fails
+        console.error('Failed to create setup state or org during sign in:', error)
       }
 
       return true

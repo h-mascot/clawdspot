@@ -46,6 +46,11 @@ model User {
   setup         SetupState?
   integrations  Integration[]
   vms           VM[]
+
+  // Multi-tenant relations
+  ownedOrganizations Organization[] @relation("OwnedOrganizations")
+  memberships        Membership[]
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -62,6 +67,10 @@ model SetupState {
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Organization link (optional for backward compat)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   // Setup progress
   status String @default("pending") // pending, provisioning, configuring_vm, ready, failed
@@ -112,6 +121,10 @@ model VM {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Organization link (optional for backward compat)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
   // VM Info
   name     String
   provider String  // orgo, aws, flyio, etc.
@@ -156,12 +169,17 @@ model VM {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([organizationId])
 }
 
 model Integration {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Organization link (optional for backward compat)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   // Integration info
   provider     String // gmail, calendar, slack, etc.
@@ -176,4 +194,94 @@ model Integration {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, provider])
+  @@index([organizationId])
+}
+
+// ============================================
+// Multi-Tenant / Organization Models
+// ============================================
+
+model Organization {
+  id    String @id @default(cuid())
+  slug  String @unique // URL-friendly identifier
+  name  String
+
+  // Owner is the primary admin
+  ownerId String
+  owner   User   @relation("OwnedOrganizations", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Memberships
+  memberships Membership[]
+
+  // Resources owned by org
+  vms          VM[]
+  integrations Integration[]
+  setupStates  SetupState[]
+
+  // Subscription / billing
+  subscription   Subscription?
+  whiteLabelConfig WhiteLabelConfig?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           MemberRole   @default(MEMBER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, organizationId])
+}
+
+model Subscription {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Stripe IDs
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  stripePriceId        String?
+
+  // Status
+  status        String   @default("inactive") // inactive, trialing, active, past_due, canceled
+  plan          String   @default("free") // free, starter, pro, enterprise
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WhiteLabelConfig {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Branding
+  logoUrl        String?
+  brandName      String?
+  primaryColor   String?
+  accentColor    String?
+  faviconUrl     String?
+
+  // Custom domain (future)
+  customDomain   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

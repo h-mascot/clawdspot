@@ -16,9 +16,9 @@ const GoogleIcon = ({ className }: { className?: string }) => (
 
 export function LandingPage() {
   const steps = [
-    { number: '1', text: 'Sign in with Google' },
-    { number: '2', text: 'Get a cloud VM' },
-    { number: '3', text: 'AI runs 24/7 inferring & executing tasks' },
+    { number: '1', text: 'Start with Google' },
+    { number: '2', text: 'Create your workspace' },
+    { number: '3', text: 'Launch hosted agents for every tenant' },
   ]
 
   const GmailIcon = () => (
@@ -43,7 +43,7 @@ export function LandingPage() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-32">
         {/* GitHub Link - Top Right */}
         <motion.a
-          href="https://github.com/Prakshal-Jain/ClawdBody"
+          href="https://github.com/henrino3/clawdspot"
           target="_blank"
           rel="noopener noreferrer"
           className="absolute top-6 right-6 sm:top-8 sm:right-8 flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all group"
@@ -67,12 +67,12 @@ export function LandingPage() {
             className="mb-6 flex flex-col items-center gap-4"
           >
             <img 
-              src="/logos/ClawdBody.png" 
-              alt="ClawdBody" 
+              src="/logos/ClawSpot.png" 
+              alt="ClawSpot" 
               className="h-28 sm:h-32 lg:h-40 object-contain"
             />
             <span className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-rose-500 via-slate-400 to-teal-400 bg-clip-text text-transparent">
-              ClawdBody
+              ClawSpot
             </span>
           </motion.div>
 
@@ -82,7 +82,7 @@ export function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            1-Click ClawdBot deployment on VMs that runs 24/7 automating your life and business.
+            White-label ClawdBody hosting for teams that need agents running 24/7 without babysitting infrastructure.
           </motion.h1>
 
           <motion.p
@@ -91,7 +91,7 @@ export function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            Persistent memory. Sandboxed cloud VM. Works while you sleep.
+            Multi-tenant workspaces. Stripe-ready billing. Branded setup flows. Still works while you sleep.
           </motion.p>
 
           <motion.button
@@ -105,7 +105,7 @@ export function LandingPage() {
           >
             <span className="flex items-center gap-2">
               <GoogleIcon className="w-5 h-5" />
-              Sign in with Google
+              Start with Google
             </span>
           </motion.button>
         </div>

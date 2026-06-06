@@ -11,7 +11,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status === 'authenticated' && session) {
-      router.push('/learning-sources')
+      router.push('/dashboard')
     }
   }, [status, session, router])
 

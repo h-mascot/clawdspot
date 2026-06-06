@@ -7,8 +7,8 @@ import { Analytics } from '@vercel/analytics/react'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ClawdBody - Preconfigured VM for ClawdeBot',
-  description: '1 Click ClawdeBot deployment on VMs with persistent memory that runs 24/7',
+  title: 'ClawSpot - White-label ClawdBody hosting',
+  description: 'Multi-tenant, white-label ClawdBody hosting for teams and operators',
 }
 
 export default function RootLayout({
