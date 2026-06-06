@@ -1,9 +1,16 @@
 import { redirect } from 'next/navigation'
-import { getTenantContext } from '@/lib/tenant'
-import { prisma } from '@/lib/prisma'
 import { CreditCard, Globe2, Server, Sparkles, Users } from 'lucide-react'
 
 export default async function DashboardPage() {
+  if (!process.env.DATABASE_URL || !process.env.NEXTAUTH_SECRET) {
+    return <ConfigurationNeeded />
+  }
+
+  const [{ getTenantContext }, { prisma }] = await Promise.all([
+    import('@/lib/tenant'),
+    import('@/lib/prisma'),
+  ])
+
   const ctx = await getTenantContext()
   if (!ctx) redirect('/')
 
@@ -96,5 +103,28 @@ function Field({ label, value }: { label: string; value: string }) {
       <div className="text-xs uppercase tracking-[0.18em] text-sam-text-dim">{label}</div>
       <div className="mt-2 break-words text-white">{value}</div>
     </div>
+  )
+}
+
+function ConfigurationNeeded() {
+  return (
+    <main className="min-h-screen bg-sam-bg text-sam-text relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(45,212,191,0.14),transparent_32rem),radial-gradient(circle_at_bottom_left,rgba(244,63,94,0.14),transparent_28rem)]" />
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center px-6 py-10">
+        <div className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.06] p-8 shadow-2xl shadow-black/30">
+          <p className="mb-3 inline-flex rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-200">
+            Deployment config needed
+          </p>
+          <h1 className="font-display text-4xl font-bold text-white">ClawSpot is deployed. Runtime secrets are next.</h1>
+          <p className="mt-4 text-sam-text-dim">
+            The public landing page is live, but authenticated tenant dashboards need production environment variables before Prisma and NextAuth can run.
+          </p>
+          <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 font-mono text-sm text-sam-text-dim">
+            Required: DATABASE_URL, DIRECT_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET.
+            Optional for paid plans: STRIPE_SECRET_KEY, STRIPE_PRICE_ID_STARTER, STRIPE_WEBHOOK_SECRET.
+          </div>
+        </div>
+      </section>
+    </main>
   )
 }
